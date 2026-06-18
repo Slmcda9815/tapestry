@@ -1,0 +1,6 @@
+node_modules
+tapestry.db
+uploads
+*.log
+.env
+.git

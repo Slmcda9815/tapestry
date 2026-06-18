@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: tapestry-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET:-supersecret}
+      - DB_PATH=/app/data/tapestry.db
+    volumes:
+      - tapestry-data:/app/data
+      - tapestry-uploads:/app/uploads
+    restart: always
+
+volumes:
+  tapestry-data:
+  tapestry-uploads:
