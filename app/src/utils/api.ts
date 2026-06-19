@@ -1,7 +1,10 @@
 
 import * as SecureStore from 'expo-secure-store';
 
-const BASE_URL = 'http://localhost:3000/api';
+const BASE_URL = 'https://tapestry-backend-hdmp.onrender.com/api';
+
+// Base URL for video/serve URLs (no /api prefix)
+export const MEDIA_URL = 'https://tapestry-backend-hdmp.onrender.com';
 
 async function getAuthHeaders() {
   const token = await SecureStore.getItemAsync('userToken');

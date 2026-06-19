@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, View, Dimensions, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { api } from '../utils/api';
+import { api, MEDIA_URL } from '../utils/api';
 
 export default function RecapScreen() {
   const route = useRoute<any>();
@@ -31,13 +31,13 @@ export default function RecapScreen() {
         const data = await response.json();
         setVlogData(data);
         // If we have a generated file, we play that instead of individual clips
-        setClips([`http://localhost:3000/${data.file_path}`]);
+        setClips([`${MEDIA_URL}/${data.file_path}`]);
       } else {
         // If no vlog yet, we might want to play individual clips from the backend
         const clipsResponse = await api.get(`/clips?date=${date}`);
         if (clipsResponse.ok) {
           const clipsData = await clipsResponse.json();
-          setClips(clipsData.map((c: any) => `http://localhost:3000/${c.file_path}`));
+          setClips(clipsData.map((c: any) => `${MEDIA_URL}/${c.file_path}`));
         }
       }
     } catch (error) {

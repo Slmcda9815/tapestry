@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, FlatList, Dimensions } from 'react-native';
 import { useRoute, useNavigation, useIsFocused } from '@react-navigation/native';
 import { Video, ResizeMode } from 'expo-av';
-import { api } from '../utils/api';
+import { api, MEDIA_URL } from '../utils/api';
 
 export default function GroupFeedScreen() {
   const route = useRoute<any>();
@@ -112,7 +112,7 @@ export default function GroupFeedScreen() {
             <View style={styles.vlogContainer}>
               <Video
                 style={styles.video}
-                source={{ uri: `http://localhost:3000/${vlog.file_path}` }}
+                source={{ uri: `${MEDIA_URL}/${vlog.file_path}` }}
                 useNativeControls
                 resizeMode={ResizeMode.CONTAIN}
                 shouldPlay={false}
