@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
-import * as FileSystem from 'expo-file-system/legacy';
+import * as FileSystem from 'expo-file-system';
 import { useNavigation } from '@react-navigation/native';
 import { api } from '../utils/api';
 
@@ -50,10 +50,9 @@ export default function CameraScreen() {
   async function saveClip(uri: string) {
     try {
       const clipsDir = `${FileSystem.documentDirectory}clips/`;
-      const dirInfo = await FileSystem.getInfoAsync(clipsDir);
-      if (!dirInfo.exists) {
-        await FileSystem.makeDirectoryAsync(clipsDir, { intermediates: true });
-      }
+      
+      // Create clips directory (fails silently if exists)
+      await FileSystem.makeDirectoryAsync(clipsDir, { intermediates: true }).catch(() => {});
 
       const filename = `clip_${Date.now()}.mov`;
       const newUri = `${clipsDir}${filename}`;
