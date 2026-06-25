@@ -1,15 +1,21 @@
 {
   "expo": {
-    "name": "app",
-    "slug": "app",
+    "name": "Tapestry",
+    "slug": "tapestry",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tapestry.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Tapestry uses your camera to capture 5-second clips for your daily vlog.",
+        "NSMicrophoneUsageDescription": "Tapestry needs microphone access to record video with audio."
+      }
     },
     "android": {
+      "package": "com.tapestry.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -32,6 +38,11 @@
       ],
       "expo-notifications",
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "your-expo-project-id"
+      }
+    }
   }
 }
