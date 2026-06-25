@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
-import * as FileSystem from 'expo-file-system';
 import { useNavigation } from '@react-navigation/native';
 import { api } from '../utils/api';
 
@@ -11,6 +10,7 @@ export default function CameraScreen() {
   const [micPermission, requestMicPermission] = useMicrophonePermissions();
   const [isRecording, setIsRecording] = useState(false);
   const [countdown, setCountdown] = useState(5);
+  const [saving, setSaving] = useState(false);
   const cameraRef = useRef<any>(null);
   const navigation = useNavigation<any>();
 
@@ -33,7 +33,7 @@ export default function CameraScreen() {
         maxDuration: 5,
       });
       console.log('Video recorded:', video.uri);
-      await saveClip(video.uri);
+      await uploadClip(video.uri);
     } catch (error) {
       console.error('Failed to record video:', error);
       setIsRecording(false);
@@ -47,40 +47,37 @@ export default function CameraScreen() {
     }
   }
 
-  async function saveClip(uri: string) {
+  async function uploadClip(uri: string) {
+    setSaving(true);
     try {
-      const clipsDir = `${FileSystem.documentDirectory}clips/`;
-      
-      // Create clips directory (fails silently if exists)
-      await FileSystem.makeDirectoryAsync(clipsDir, { intermediates: true }).catch(() => {});
-
-      const filename = `clip_${Date.now()}.mov`;
-      const newUri = `${clipsDir}${filename}`;
-      await FileSystem.moveAsync({
-        from: uri,
-        to: newUri,
+      // Create clip entry on backend
+      const createRes = await api.post('/clips', { 
+        timestamp: new Date().toISOString() 
       });
-
-      // Upload to backend
-      try {
-        const createRes = await api.post('/clips', { 
-          timestamp: new Date().toISOString() 
-        });
-        if (createRes.ok) {
-          const clipData = await createRes.json();
-          await api.uploadClip(clipData.id, newUri);
-        }
-      } catch (uploadError) {
-        console.error('Failed to upload clip:', uploadError);
-        // We still have it locally, so we don't alert the user
+      
+      if (!createRes.ok) {
+        Alert.alert('Error', 'Failed to connect. Check your connection.');
+        setSaving(false);
+        return;
       }
+      
+      const clipData = await createRes.json();
 
-      Alert.alert('Success', '5-second clip captured!', [
-        { text: 'OK', onPress: () => navigation.navigate('Home') }
-      ]);
-    } catch (error) {
-      console.error('Failed to save clip:', error);
-      Alert.alert('Error', 'Failed to save clip.');
+      // Upload the video file directly
+      const uploadRes = await api.uploadClip(clipData.id, uri);
+      
+      if (uploadRes.ok) {
+        Alert.alert('Success', '5-second clip captured!', [
+          { text: 'OK', onPress: () => navigation.navigate('Home') }
+        ]);
+      } else {
+        Alert.alert('Error', 'Failed to upload clip. Check your connection.');
+      }
+    } catch (uploadError) {
+      console.error('Failed to upload clip:', uploadError);
+      Alert.alert('Error', 'Failed to upload. Check your connection.');
+    } finally {
+      setSaving(false);
     }
   }
 

@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, FlatList, TouchableOpacity, Dimensions } from 'react-native';
-import * as FileSystem from 'expo-file-system';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -43,15 +42,7 @@ export default function HomeScreen() {
         setSyncStatus('synced');
       } else {
         setSyncStatus('offline');
-        // Fallback to local if backend fails
-        const clipsDir = `${FileSystem.documentDirectory}clips/`;
-        try {
-          const files = await FileSystem.readDirectoryAsync(clipsDir);
-          setClips(files.map(f => `${clipsDir}${f}`));
-        } catch {
-          // Directory doesn't exist yet - that's fine
-          setClips([]);
-        }
+        setClips([]);
       }
     } catch (error) {
       console.error('Failed to load clips:', error);
