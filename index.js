@@ -77,10 +77,10 @@ fastify.get('/api/health', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() };
 });
 
-// Register Routes
-fastify.register(require('./routes/clips'));
-fastify.register(require('./routes/vlogs'));
-fastify.register(require('./routes/groups'));
+// Register Routes (with /api prefix)
+fastify.register(require('./routes/clips'), { prefix: '/api' });
+fastify.register(require('./routes/vlogs'), { prefix: '/api' });
+fastify.register(require('./routes/groups'), { prefix: '/api' });
 
 // Auth Routes
 fastify.post('/api/auth/register', {
