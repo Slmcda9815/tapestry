@@ -115,13 +115,7 @@ async function groupRoutes(fastify, options) {
         type: 'object',
         properties: {
           id: { type: 'string', format: 'uuid' },
-          date: { type: 'string', pattern: '^\\\\d{4}-\\\\d{2}-\\\\d{2}$' }
-        }
-      },
-      body: {
-        type: 'object',
-        properties: {
-          musicType: { type: 'string', enum: ['chill', 'upbeat', 'energetic'] }
+          date: { type: 'string' }
         }
       }
     }
@@ -229,7 +223,7 @@ async function groupRoutes(fastify, options) {
         type: 'object',
         properties: {
           id: { type: 'string', format: 'uuid' },
-          date: { type: 'string', pattern: '^\\\\d{4}-\\\\d{2}-\\\\d{2}$' }
+          date: { type: 'string' }
         }
       }
     }

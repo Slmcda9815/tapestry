@@ -11,7 +11,7 @@ async function vlogRoutes(fastify, options) {
       params: {
         type: 'object',
         properties: {
-          date: { type: 'string', pattern: '^\\\\d{4}-\\\\d{2}-\\\\d{2}$' }
+          date: { type: 'string' }
         }
       }
     }
@@ -37,7 +37,7 @@ async function vlogRoutes(fastify, options) {
       params: {
         type: 'object',
         properties: {
-          date: { type: 'string', pattern: '^\\\\d{4}-\\\\d{2}-\\\\d{2}$' }
+          date: { type: 'string' }
         }
       },
       body: {
@@ -66,25 +66,22 @@ async function vlogRoutes(fastify, options) {
     // Enhanced Scoring Logic
     const scoreBreakdown = {
       clipCount: clips.length,
-      consistencyScore: Math.min(clips.length * 5, 50), // Up to 50 points for quantity
+      consistencyScore: Math.min(clips.length * 5, 50),
       hourlyBonus: 0,
       streakBonus: 0,
     };
 
-    // Calculate hourly consistency (simple version)
     const hours = new Set(clips.map(c => new Date(c.timestamp).getHours()));
     scoreBreakdown.hourlyBonus = hours.size * 2;
     
     const totalScore = scoreBreakdown.consistencyScore + scoreBreakdown.hourlyBonus;
 
-    // FFmpeg Processing with Crossfades, Captions, and Music
     const command = ffmpeg();
     
     clips.forEach(clip => {
       command.input(path.join(__dirname, '..', clip.file_path));
     });
 
-    // Add background music as another input
     if (fs.existsSync(musicPath)) {
       command.input(musicPath);
     }
@@ -92,7 +89,6 @@ async function vlogRoutes(fastify, options) {
     let filterComplex = '';
     const fontPath = '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf';
 
-    // 1. Scale, Captions and PTS for each clip
     for (let i = 0; i < clips.length; i++) {
       const timeStr = new Date(clips[i].timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       filterComplex += `[${i}:v]scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,setsar=1,drawtext=fontfile='${fontPath}':text='${timeStr}':fontcolor=white:fontsize=48:x=w-tw-40:y=h-th-40:box=1:boxcolor=black@0.5:boxborderw=10,setpts=PTS-STARTPTS[v${i}];`;
@@ -102,9 +98,8 @@ async function vlogRoutes(fastify, options) {
     let lastVideoLabel = 'v0';
     let lastAudioLabel = 'a0';
 
-    // 2. Crossfades
     if (clips.length > 1) {
-      let vOffset = 4; // Assuming 5s clips, 1s crossfade
+      let vOffset = 4;
       filterComplex += `[v0][v1]xfade=transition=fade:duration=1:offset=${vOffset}[vout1];`;
       filterComplex += `[a0][a1]acrossfade=d=1:o=${vOffset}[aout1];`;
       
@@ -117,7 +112,6 @@ async function vlogRoutes(fastify, options) {
       lastAudioLabel = `aout${clips.length - 1}`;
     }
 
-    // 3. Mix Background Music
     const musicInputIndex = clips.length;
     if (fs.existsSync(musicPath)) {
       filterComplex += `[${musicInputIndex}:a]aloop=loop=-1:size=2e9,volume=0.3[bgm];`;
@@ -136,7 +130,7 @@ async function vlogRoutes(fastify, options) {
         '-c:a aac',
         '-b:a 128k',
         '-movflags +faststart',
-        `-t ${clips.length * 4 + 1}` // Expected duration
+        `-t ${clips.length * 4 + 1}`
       ])
       .on('error', function(err) {
         console.error('An error occurred: ' + err.message);

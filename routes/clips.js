@@ -69,7 +69,7 @@ async function clipRoutes(fastify, options) {
       query: {
         type: 'object',
         properties: {
-          date: { type: 'string', pattern: '^\\\\d{4}-\\\\d{2}-\\\\d{2}$' }
+          date: { type: 'string' }
         }
       }
     }
