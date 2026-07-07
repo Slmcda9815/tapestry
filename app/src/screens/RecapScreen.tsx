@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, View, Dimensions, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Dimensions, TouchableOpacity, Text, ActivityIndicator, Alert } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { api, MEDIA_URL } from '../utils/api';
@@ -13,6 +13,7 @@ export default function RecapScreen() {
   const [clips, setClips] = useState<string[]>(initialClips || []);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(!initialClips);
+  const [generating, setGenerating] = useState(false);
   const [vlogData, setVlogData] = useState<any>(null);
   const videoRef = useRef<Video>(null);
 
@@ -51,10 +52,29 @@ export default function RecapScreen() {
     if (status.didJustFinish) {
       if (currentIndex < clips.length - 1) {
         setCurrentIndex(currentIndex + 1);
-      } else {
-        // Loop or stay on last frame? 
-        // For now just stay or show score
       }
+    }
+  };
+
+  const handleGenerateVlog = async () => {
+    setGenerating(true);
+    try {
+      const date = initialDate || new Date().toISOString().split('T')[0];
+      const response = await api.post(`/vlogs/${date}/generate`, {});
+      if (response.ok) {
+        const data = await response.json();
+        Alert.alert('Vlog Generated!', `Score: ${data.score}`, [
+          { text: 'View', onPress: () => fetchVlog() }
+        ]);
+      } else {
+        const err = await response.json();
+        Alert.alert('Error', err.error || 'Could not generate vlog');
+      }
+    } catch (error) {
+      console.error('Generate vlog error:', error);
+      Alert.alert('Error', 'Failed to connect');
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -69,7 +89,18 @@ export default function RecapScreen() {
   if (clips.length === 0) {
     return (
       <View style={[styles.container, styles.centered]}>
-        <Text style={{ color: '#fff' }}>No clips found for this day.</Text>
+        <Text style={{ color: '#fff', fontSize: 18, marginBottom: 20 }}>No clips found for this day.</Text>
+        <TouchableOpacity 
+          style={styles.generateButton}
+          onPress={handleGenerateVlog}
+          disabled={generating}
+        >
+          {generating ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.generateButtonText}>Generate Vlog from Captured Clips</Text>
+          )}
+        </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20 }}>
           <Text style={{ color: '#007AFF' }}>Go Back</Text>
         </TouchableOpacity>
@@ -202,5 +233,16 @@ const styles = StyleSheet.create({
   breakdownText: {
     color: '#888',
     fontSize: 12,
+  },
+  generateButton: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 10,
+  },
+  generateButtonText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
