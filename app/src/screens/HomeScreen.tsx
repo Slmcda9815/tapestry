@@ -105,7 +105,12 @@ export default function HomeScreen() {
       {clips.length > 0 && (
         <TouchableOpacity 
           style={styles.recapButton}
-          onPress={() => navigation.navigate('Recap', { clips })}
+          onPress={() => navigation.navigate('Recap', { 
+            clips: clips
+              .filter((c: any) => c.file_path)
+              .map((c: any) => c.file_path),
+            date: new Date().toISOString().split('T')[0] 
+          })}
         >
           <Text style={styles.recapButtonText}>Watch Daily Recap</Text>
         </TouchableOpacity>
